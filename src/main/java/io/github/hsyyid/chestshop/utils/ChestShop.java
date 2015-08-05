@@ -1,6 +1,5 @@
 package io.github.hsyyid.chestshop.utils;
 
-import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.world.Location;
 
 public class ChestShop
@@ -9,15 +8,15 @@ public class ChestShop
 	public double price;
 	public String itemName;
 	public Location signLocation;
-	public Player owner;
+	public String ownerUUID;
 	
-	public ChestShop(int itemAmount, double price, String itemName, Location signLocation, Player owner)
+	public ChestShop(int itemAmount, double price, String itemName, Location signLocation, String ownerUUID)
 	{
 		this.itemAmount = itemAmount;
 		this.price = price;
 		this.itemName = itemName;
 		this.signLocation = signLocation;
-		this.owner = owner;
+		this.ownerUUID = ownerUUID;
 	}
 	
 	public void setItemAmount(int itemAmount)
@@ -50,9 +49,9 @@ public class ChestShop
 		return signLocation;
 	}
 	
-	public Player getOwner()
+	public String getOwnerUUID()
 	{
-		return owner;
+		return ownerUUID;
 	}
 	
 	public double getPrice()

@@ -1,11 +1,20 @@
 package io.github.hsyyid.chestshop;
 
 import io.github.hsyyid.chestshop.utils.ChestShop;
+import io.github.hsyyid.chestshop.utils.ChestShopAccountManager;
+import io.github.hsyyid.chestshop.utils.LocationAdapter;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -22,6 +31,7 @@ import org.spongepowered.api.event.block.tileentity.SignChangeEvent;
 import org.spongepowered.api.event.entity.player.PlayerBreakBlockEvent;
 import org.spongepowered.api.event.entity.player.PlayerInteractBlockEvent;
 import org.spongepowered.api.event.state.ServerStartedEvent;
+import org.spongepowered.api.event.state.ServerStoppingEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.config.DefaultConfig;
 import org.spongepowered.api.text.Texts;
@@ -31,9 +41,11 @@ import org.spongepowered.api.world.TeleportHelper;
 
 import com.erigitic.config.AccountManager;
 import com.erigitic.main.TotalEconomy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.inject.Inject;
 
-@Plugin(id = "ChestShop", name = "ChestShop", version = "0.1", dependencies = "required-after:TotalEconomy")
+@Plugin(id = "ChestShop", name = "ChestShop", version = "0.2", dependencies = "required-after:TotalEconomy")
 public class Main
 {
 	public static Game game = null;
@@ -41,6 +53,7 @@ public class Main
 	public static ConfigurationLoader<CommentedConfigurationNode> configurationManager;
 	public static TeleportHelper helper;
 	public static ArrayList<ChestShop> chestShops = new ArrayList<ChestShop>();
+	private Gson gson = new GsonBuilder().registerTypeHierarchyAdapter(Location.class, new LocationAdapter()).create();
 
 	@Inject
 	private Logger logger;
@@ -82,6 +95,26 @@ public class Main
 			getLogger().error("The default configuration could not be loaded or created!");
 		}
 
+		String json = null;
+		
+		try
+		{
+			json = readFile("ChestShops.json", StandardCharsets.UTF_8);
+		}
+		catch (IOException e)
+		{
+			getLogger().error("Could not read JSON file!");
+		}
+		
+		if(json != null)
+		{
+			chestShops = new ArrayList<ChestShop>(Arrays.asList(gson.fromJson(json, ChestShop[].class)));
+		}
+		else
+		{
+			getLogger().error("No JSON data read.");
+		}
+		
 		getLogger().info("-----------------------------");
 		getLogger().info("ChestShop was made by HassanS6000!");
 		getLogger().info("Please post all errors on the Sponge Thread or on GitHub!");
@@ -89,10 +122,48 @@ public class Main
 		getLogger().info("-----------------------------");
 		getLogger().info("ChestShop loaded!");
 	}
+	
+	static String readFile(String path, Charset encoding) 
+		  throws IOException 
+		{
+		  byte[] encoded = Files.readAllBytes(Paths.get(path));
+		  return new String(encoded, encoding);
+		}
+	
+	@Subscribe
+	
+	public void onServerStoppingEvent(ServerStoppingEvent event)
+	{
+		String json = gson.toJson(chestShops);
+		try
+		{
+			// Assume default encoding.
+			FileWriter fileWriter = new FileWriter("ChestShops.json");
 
+			// Always wrap FileWriter in BufferedWriter.
+			BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+
+			bufferedWriter.write(json);
+
+			bufferedWriter.flush();
+			// Always close files.
+			bufferedWriter.close();
+		}
+		catch (IOException ex)
+		{
+			getLogger().error("Could not save JSON file!");
+		}
+	}
+	
 	@Subscribe
 	public void onSignChange(SignChangeEvent event)
 	{
+		Player owner = null;
+		if (event.getCause().isPresent() && event.getCause().get().getCause() instanceof Player)
+		{
+			owner = (Player) event.getCause().get().getCause();
+		}
+
 		Sign sign = event.getTile();
 		Location signLocation = sign.getBlock();
 		double y = signLocation.getY() - 1;
@@ -103,28 +174,25 @@ public class Main
 		String line2 = Texts.toPlain(signData.getLine(2));
 		String line3 = Texts.toPlain(signData.getLine(3));
 
-		if (chestLocation.getBlock() != null && chestLocation.getBlock().getType().equals(BlockTypes.CHEST))
+		if (line0.equals("[ChestShop]"))
 		{
-			Player owner = null;
-			
-			for (Player player : game.getServer().getOnlinePlayers())
+			if (chestLocation.getBlock() != null && chestLocation.getBlock().getType().equals(BlockTypes.CHEST))
 			{
-				if (player.getName().equals(line0))
+				signData.setLine(0, Texts.of(TextColors.DARK_BLUE, "[ChestShop]"));
+				if (owner != null)
 				{
-					owner = player;
-					break;
+					int itemAmount = Integer.parseInt(line1);
+					double price = Double.parseDouble(line2);
+					String itemName = line3;
+					ChestShop shop = new ChestShop(itemAmount, price, itemName, signLocation, owner.getUniqueId().toString());
+					chestShops.add(shop);
+					owner.sendMessage(Texts.of(TextColors.BLUE, "[ChestShop]: ", TextColors.GREEN, "ChestShop successfully created!"));
+
 				}
 			}
-
-			if (owner != null)
+			else
 			{
-				int itemAmount = Integer.parseInt(line1);
-				double price = Double.parseDouble(line2);
-				String itemName = line3;
-				ChestShop shop = new ChestShop(itemAmount, price, itemName, signLocation, owner);
-				chestShops.add(shop);
-				owner.sendMessage(Texts.of(TextColors.BLUE, "[ChestShop]: ", TextColors.GREEN, "ChestShop successfully created!"));
-
+				signData.setLine(0, Texts.of(TextColors.DARK_RED, "[ChestShop]"));
 			}
 		}
 
@@ -147,12 +215,24 @@ public class Main
 
 			if (thisShop != null)
 			{
-				thisShop.getOwner().sendMessage(Texts.of(TextColors.BLUE, "[ChestShop]: ", TextColors.GREEN, " ChestShop successfully deleted!"));
+				Player owner = null;
+				for(Player p : game.getServer().getOnlinePlayers())
+				{
+					if(p.getUniqueId().toString().equals(thisShop.getOwnerUUID()))
+					{
+						owner = p;
+						break;
+					}
+				}
+				if(owner != null)
+				{
+					owner.sendMessage(Texts.of(TextColors.BLUE, "[ChestShop]: ", TextColors.GREEN, " ChestShop successfully deleted!"));
+				}
 				chestShops.remove(thisShop);
 			}
 		}
 	}
-	
+
 	@Subscribe
 	public void onPlayerInteractBlock(PlayerInteractBlockEvent event)
 	{
@@ -169,34 +249,51 @@ public class Main
 
 			if (thisShop != null)
 			{
-				int itemAmount = thisShop.getItemAmount();
-				double price = thisShop.getPrice();
-				String itemName = thisShop.getItemName();
-				Location chestLocation = new Location(event.getBlock().getExtent(), event.getBlock().getX(), event.getBlock().getY() - 1, event.getBlock().getZ());
-
-				if (chestLocation.getBlock() != null && chestLocation.getBlock().getType().equals(BlockTypes.CHEST))
+				if (thisShop.getOwnerUUID().equals(event.getEntity().getUniqueId().toString()))
 				{
-					// TODO: Get chest and check if Item is in there - cannot be done until InventoryAPI is implemented..
-					Player player = event.getEntity();
-					TotalEconomy totalEconomy = (TotalEconomy) game.getPluginManager().getPlugin("TotalEconomy").get().getInstance();
-					AccountManager accountManager = totalEconomy.getAccountManager();
-					BigDecimal amount = new BigDecimal(price);
+					event.getEntity().sendMessage(Texts.of(TextColors.BLUE, "[ChestShop]: ", TextColors.DARK_RED, "Error! ", TextColors.RED, "You cannot purchase things from yourself!"));
+				}
+				else
+				{
+					int itemAmount = thisShop.getItemAmount();
+					double price = thisShop.getPrice();
+					String itemName = thisShop.getItemName();
+					Location chestLocation = new Location(event.getBlock().getExtent(), event.getBlock().getX(), event.getBlock().getY() - 1, event.getBlock().getZ());
 
-					if(accountManager.getBalance(player).intValue() > amount.intValue())
+					if (chestLocation.getBlock() != null && chestLocation.getBlock().getType().equals(BlockTypes.CHEST))
 					{
-						accountManager.removeFromBalance(player, amount);
-						player.sendMessage(Texts.of(TextColors.BLUE, "[ChestShop]: ", TextColors.GREEN, "You have just bought " + itemAmount + " " + itemName + " from " + thisShop.getOwner().getName() + " for " + price + "dollars."));
-						game.getCommandDispatcher().process(game.getServer().getConsole(), "give" + " " + player.getName() + " " + itemName + " " + itemAmount);
-						accountManager.addToBalance(thisShop.getOwner(), amount, true);
+						// TODO: Get chest and check if Item is in there - cannot be done until InventoryAPI is implemented..
+						Player player = event.getEntity();
+						TotalEconomy totalEconomy = (TotalEconomy) game.getPluginManager().getPlugin("TotalEconomy").get().getInstance();
+						AccountManager accountManager = totalEconomy.getAccountManager();
+						ChestShopAccountManager chestShopAccountManager = new ChestShopAccountManager(totalEconomy);
+						BigDecimal amount = new BigDecimal(price);
 
-						if (game.getServer().getOnlinePlayers().contains(thisShop.getOwner()))
+						if (accountManager.getBalance(player).intValue() > amount.intValue())
 						{
-							thisShop.getOwner().sendMessage(Texts.of(TextColors.BLUE, "[ChestShop]: ", TextColors.GREEN, player.getName() + " has just bought " + itemAmount + " " + itemName + " from you!"));
+							accountManager.removeFromBalance(player, amount);
+							player.sendMessage(Texts.of(TextColors.BLUE, "[ChestShop]: ", TextColors.GREEN, "You have just bought " + itemAmount + " " + itemName + " for " + price + " dollars."));
+							game.getCommandDispatcher().process(game.getServer().getConsole(), "give" + " " + player.getName() + " " + itemName + " " + itemAmount);
+							chestShopAccountManager.addToBalance(thisShop.getOwnerUUID(), amount, true);
+
+							Player owner = null;
+							for(Player p : game.getServer().getOnlinePlayers())
+							{
+								if(p.getUniqueId().toString().equals(thisShop.getOwnerUUID()))
+								{
+									owner = p;
+									break;
+								}
+							}
+							if (owner != null)
+							{
+								owner.sendMessage(Texts.of(TextColors.BLUE, "[ChestShop]: ", TextColors.GREEN, player.getName() + " has just bought " + itemAmount + " " + itemName + " from you!"));
+							}
 						}
-					}
-					else
-					{
-						player.sendMessage(Texts.of(TextColors.BLUE, "[ChestShop]: ", TextColors.DARK_RED, "Error! ", TextColors.RED, "You don't have enough money to do that!"));
+						else
+						{
+							player.sendMessage(Texts.of(TextColors.BLUE, "[ChestShop]: ", TextColors.DARK_RED, "Error! ", TextColors.RED, "You don't have enough money to do that!"));
+						}
 					}
 				}
 			}
