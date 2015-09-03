@@ -1,7 +1,6 @@
 package io.github.hsyyid.chestshop;
 
 import io.github.hsyyid.chestshop.utils.ChestShop;
-import io.github.hsyyid.chestshop.utils.ChestShopAccountManager;
 import io.github.hsyyid.chestshop.utils.LocationAdapter;
 
 import java.io.BufferedWriter;
@@ -15,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.UUID;
 
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -22,22 +22,25 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
+import org.spongepowered.api.block.BlockTransaction;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.block.tileentity.Sign;
-import org.spongepowered.api.data.manipulator.tileentity.SignData;
-import org.spongepowered.api.entity.player.Player;
-import org.spongepowered.api.event.Subscribe;
-import org.spongepowered.api.event.block.tileentity.SignChangeEvent;
-import org.spongepowered.api.event.entity.player.PlayerBreakBlockEvent;
-import org.spongepowered.api.event.entity.player.PlayerInteractBlockEvent;
-import org.spongepowered.api.event.state.ServerStartedEvent;
-import org.spongepowered.api.event.state.ServerStoppingEvent;
+import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.data.manipulator.mutable.tileentity.SignData;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.block.BreakBlockEvent;
+import org.spongepowered.api.event.block.InteractBlockEvent;
+import org.spongepowered.api.event.block.tileentity.ChangeSignEvent;
+import org.spongepowered.api.event.game.state.GameStartedServerEvent;
+import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.config.DefaultConfig;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.TeleportHelper;
+import org.spongepowered.api.world.World;
 
 import com.erigitic.config.AccountManager;
 import com.erigitic.main.TotalEconomy;
@@ -71,8 +74,8 @@ public class Main
 	@DefaultConfig(sharedRoot = true)
 	private ConfigurationLoader<CommentedConfigurationNode> confManager;
 
-	@Subscribe
-	public void onServerStart(ServerStartedEvent event)
+	@Listener
+	public void onServerStart(GameStartedServerEvent event)
 	{
 		getLogger().info("ChestShop loading...");
 		game = event.getGame();
@@ -130,9 +133,9 @@ public class Main
 		  return new String(encoded, encoding);
 		}
 	
-	@Subscribe
+	@Listener
 	
-	public void onServerStoppingEvent(ServerStoppingEvent event)
+	public void onServerStoppingEvent(GameStoppingServerEvent event)
 	{
 		String json = gson.toJson(chestShops);
 		try
@@ -155,30 +158,26 @@ public class Main
 		}
 	}
 	
-	@Subscribe
-	public void onSignChange(SignChangeEvent event)
+	@Listener
+	public void onSignChange(ChangeSignEvent.SourcePlayer event)
 	{
-		Player owner = null;
-		if (event.getCause().isPresent() && event.getCause().get().getCause() instanceof Player)
-		{
-			owner = (Player) event.getCause().get().getCause();
-		}
-
-		Sign sign = event.getTile();
-		Location signLocation = sign.getBlock();
+		Player owner = event.getSourceEntity();
+		Sign sign = event.getTargetTile();
+		Location<World> signLocation = sign.getLocation();
 		double y = signLocation.getY() - 1;
-		Location chestLocation = new Location(signLocation.getExtent(), signLocation.getX(), y, signLocation.getZ());
-		SignData signData = event.getNewData();
-		String line0 = Texts.toPlain(signData.getLine(0));
-		String line1 = Texts.toPlain(signData.getLine(1));
-		String line2 = Texts.toPlain(signData.getLine(2));
-		String line3 = Texts.toPlain(signData.getLine(3));
+		Location<World> chestLocation = new Location<World>(signLocation.getExtent(), signLocation.getX(), y, signLocation.getZ());
+		SignData signData = event.getText();
+		
+		String line0 = Texts.toPlain(signData.getValue(Keys.SIGN_LINES).get().get(0));
+        String line1 = Texts.toPlain(signData.getValue(Keys.SIGN_LINES).get().get(1));
+        String line2 = Texts.toPlain(signData.getValue(Keys.SIGN_LINES).get().get(2));
+        String line3 = Texts.toPlain(signData.getValue(Keys.SIGN_LINES).get().get(3));
 
 		if (line0.equals("[ChestShop]"))
 		{
 			if (chestLocation.getBlock() != null && chestLocation.getBlock().getType().equals(BlockTypes.CHEST))
 			{
-				signData.setLine(0, Texts.of(TextColors.DARK_BLUE, "[ChestShop]"));
+			    signData.set(signData.getValue(Keys.SIGN_LINES).get().set(0, Texts.of(TextColors.DARK_BLUE, "[ChestShop]")));
 				if (owner != null)
 				{
 					int itemAmount = Integer.parseInt(line1);
@@ -192,22 +191,22 @@ public class Main
 			}
 			else
 			{
-				signData.setLine(0, Texts.of(TextColors.DARK_RED, "[ChestShop]"));
+				signData.set(signData.getValue(Keys.SIGN_LINES).get().set(0, Texts.of(TextColors.DARK_RED, "[ChestShop]")));
 			}
 		}
-
-		event.setNewData(signData);
 	}
 
-	@Subscribe
-	public void onPlayerBreakBlock(PlayerBreakBlockEvent event)
+	@Listener
+	public void onPlayerBreakBlock(BreakBlockEvent.SourcePlayer event)
 	{
-		if (event.getBlock().getBlock() != null && event.getBlock().getBlock().getType() == BlockTypes.WALL_SIGN)
+		for(BlockTransaction transaction : event.getTransactions())
+		{
+		if (transaction.getFinalReplacement().getState().getType() != null && transaction.getFinalReplacement().getState().getType() == BlockTypes.WALL_SIGN)
 		{
 			ChestShop thisShop = null;
 			for (ChestShop chestShop : chestShops)
 			{
-				if (chestShop.getSignLocation().getX() == event.getBlock().getX() && chestShop.getSignLocation().getY() == event.getBlock().getY() && chestShop.getSignLocation().getZ() == event.getBlock().getZ())
+				if (chestShop.getSignLocation().getX() == event.getSourceTransform().getLocation().getX() && chestShop.getSignLocation().getY() == event.getSourceTransform().getLocation().getY() && chestShop.getSignLocation().getZ() == event.getSourceTransform().getLocation().getZ())
 				{
 					thisShop = chestShop;
 				}
@@ -231,17 +230,18 @@ public class Main
 				chestShops.remove(thisShop);
 			}
 		}
+		}
 	}
 
-	@Subscribe
-	public void onPlayerInteractBlock(PlayerInteractBlockEvent event)
+	@Listener
+	public void onPlayerInteractBlock(InteractBlockEvent.SourcePlayer event)
 	{
-		if (event.getBlock().getBlock() != null && event.getBlock().getBlock().getType() == BlockTypes.WALL_SIGN)
+		if (event.getTargetLocation() != null && event.getTargetBlock().getState().getType() == BlockTypes.WALL_SIGN)
 		{
 			ChestShop thisShop = null;
 			for (ChestShop chestShop : chestShops)
 			{
-				if (chestShop.getSignLocation().getX() == event.getBlock().getX() && chestShop.getSignLocation().getY() == event.getBlock().getY() && chestShop.getSignLocation().getZ() == event.getBlock().getZ())
+				if (chestShop.getSignLocation().getX() == event.getTargetLocation().getX() && chestShop.getSignLocation().getY() == event.getTargetLocation().getY() && chestShop.getSignLocation().getZ() == event.getTargetLocation().getZ())
 				{
 					thisShop = chestShop;
 				}
@@ -249,32 +249,31 @@ public class Main
 
 			if (thisShop != null)
 			{
-				if (thisShop.getOwnerUUID().equals(event.getEntity().getUniqueId().toString()))
+				if (thisShop.getOwnerUUID().equals(event.getSourceEntity().getUniqueId().toString()))
 				{
-					event.getEntity().sendMessage(Texts.of(TextColors.BLUE, "[ChestShop]: ", TextColors.DARK_RED, "Error! ", TextColors.RED, "You cannot purchase things from yourself!"));
+					event.getSourceEntity().sendMessage(Texts.of(TextColors.BLUE, "[ChestShop]: ", TextColors.DARK_RED, "Error! ", TextColors.RED, "You cannot purchase things from yourself!"));
 				}
 				else
 				{
 					int itemAmount = thisShop.getItemAmount();
 					double price = thisShop.getPrice();
 					String itemName = thisShop.getItemName();
-					Location chestLocation = new Location(event.getBlock().getExtent(), event.getBlock().getX(), event.getBlock().getY() - 1, event.getBlock().getZ());
+					Location<World> chestLocation = new Location<World>(event.getTargetLocation().getExtent(), event.getTargetLocation().getX(), event.getTargetLocation().getY() - 1, event.getTargetLocation().getZ());
 
 					if (chestLocation.getBlock() != null && chestLocation.getBlock().getType().equals(BlockTypes.CHEST))
 					{
 						// TODO: Get chest and check if Item is in there - cannot be done until InventoryAPI is implemented..
-						Player player = event.getEntity();
+						Player player = event.getSourceEntity();
 						TotalEconomy totalEconomy = (TotalEconomy) game.getPluginManager().getPlugin("TotalEconomy").get().getInstance();
 						AccountManager accountManager = totalEconomy.getAccountManager();
-						ChestShopAccountManager chestShopAccountManager = new ChestShopAccountManager(totalEconomy);
 						BigDecimal amount = new BigDecimal(price);
 
-						if (accountManager.getBalance(player).intValue() > amount.intValue())
+						if (accountManager.getBalance(player.getUniqueId()).intValue() > amount.intValue())
 						{
-							accountManager.removeFromBalance(player, amount);
+							accountManager.removeFromBalance(player.getUniqueId(), amount);
 							player.sendMessage(Texts.of(TextColors.BLUE, "[ChestShop]: ", TextColors.GREEN, "You have just bought " + itemAmount + " " + itemName + " for " + price + " dollars."));
 							game.getCommandDispatcher().process(game.getServer().getConsole(), "give" + " " + player.getName() + " " + itemName + " " + itemAmount);
-							chestShopAccountManager.addToBalance(thisShop.getOwnerUUID(), amount, true);
+							accountManager.addToBalance(UUID.fromString(thisShop.getOwnerUUID()), amount, true);
 
 							Player owner = null;
 							for(Player p : game.getServer().getOnlinePlayers())

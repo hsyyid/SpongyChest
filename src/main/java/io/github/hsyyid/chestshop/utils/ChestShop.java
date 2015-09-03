@@ -1,16 +1,17 @@
 package io.github.hsyyid.chestshop.utils;
 
 import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
 
 public class ChestShop
 {
 	public int itemAmount;
 	public double price;
 	public String itemName;
-	public Location signLocation;
+	public Location<World> signLocation;
 	public String ownerUUID;
 	
-	public ChestShop(int itemAmount, double price, String itemName, Location signLocation, String ownerUUID)
+	public ChestShop(int itemAmount, double price, String itemName, Location<World> signLocation, String ownerUUID)
 	{
 		this.itemAmount = itemAmount;
 		this.price = price;
@@ -24,7 +25,7 @@ public class ChestShop
 		this.itemAmount = itemAmount;
 	}
 	
-	public void setSignLocation(Location signLocation)
+	public void setSignLocation(Location<World> signLocation)
 	{
 		this.signLocation = signLocation;
 	}
@@ -44,7 +45,7 @@ public class ChestShop
 		return itemAmount;
 	}
 	
-	public Location getSignLocation()
+	public Location<World> getSignLocation()
 	{
 		return signLocation;
 	}

@@ -13,10 +13,10 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
-public class LocationAdapter extends TypeAdapter<Location>
+public class LocationAdapter extends TypeAdapter<Location<World>>
 {
 	@Override
-	public void write(JsonWriter out, Location location) throws IOException
+	public void write(JsonWriter out, Location<World> location) throws IOException
 	{
 		if (location == null)
 		{
@@ -45,7 +45,7 @@ public class LocationAdapter extends TypeAdapter<Location>
 	}
 
 	@Override
-	public Location read(JsonReader in) throws IOException
+	public Location<World> read(JsonReader in) throws IOException
 	{
 		if (in.peek() == JsonToken.NULL)
 		{
@@ -70,7 +70,7 @@ public class LocationAdapter extends TypeAdapter<Location>
 
 		if (Main.game.getServer().getWorld(UUID.fromString(worldID)).isPresent())
 		{
-			Location location = new Location(Main.game.getServer().getWorld(UUID.fromString(worldID)).get(), x, y, z);
+			Location<World> location = new Location<World>(Main.game.getServer().getWorld(UUID.fromString(worldID)).get(), x, y, z);
 			return location;
 		}
 		else
