@@ -206,7 +206,7 @@ public class Main
 			ChestShop thisShop = null;
 			for (ChestShop chestShop : chestShops)
 			{
-				if (chestShop.getSignLocation().getX() == event.getSourceTransform().getLocation().getX() && chestShop.getSignLocation().getY() == event.getSourceTransform().getLocation().getY() && chestShop.getSignLocation().getZ() == event.getSourceTransform().getLocation().getZ())
+				if (chestShop.getSignLocation().getX() == transaction.getFinalReplacement().getLocation().get().getX() && chestShop.getSignLocation().getY() == transaction.getFinalReplacement().getLocation().get().getY() && chestShop.getSignLocation().getZ() == transaction.getFinalReplacement().getLocation().get().getZ())
 				{
 					thisShop = chestShop;
 				}
