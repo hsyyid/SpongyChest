@@ -1,7 +1,36 @@
 package io.github.hsyyid.chestshop;
 
+import com.erigitic.config.AccountManager;
+import com.erigitic.main.TotalEconomy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.inject.Inject;
 import io.github.hsyyid.chestshop.utils.ChestShop;
 import io.github.hsyyid.chestshop.utils.LocationAdapter;
+import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.commented.CommentedConfigurationNode;
+import ninja.leaping.configurate.loader.ConfigurationLoader;
+import org.slf4j.Logger;
+import org.spongepowered.api.Game;
+import org.spongepowered.api.block.BlockTransaction;
+import org.spongepowered.api.block.BlockTypes;
+import org.spongepowered.api.block.tileentity.Sign;
+import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.data.manipulator.mutable.tileentity.SignData;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.block.ChangeBlockEvent;
+import org.spongepowered.api.event.block.InteractBlockEvent;
+import org.spongepowered.api.event.block.tileentity.ChangeSignEvent;
+import org.spongepowered.api.event.game.state.GameStartedServerEvent;
+import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
+import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.service.config.DefaultConfig;
+import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.TeleportHelper;
+import org.spongepowered.api.world.World;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,38 +44,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
-
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
-
-import org.slf4j.Logger;
-import org.spongepowered.api.Game;
-import org.spongepowered.api.block.BlockTransaction;
-import org.spongepowered.api.block.BlockTypes;
-import org.spongepowered.api.block.tileentity.Sign;
-import org.spongepowered.api.data.key.Keys;
-import org.spongepowered.api.data.manipulator.mutable.tileentity.SignData;
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.block.BreakBlockEvent;
-import org.spongepowered.api.event.block.InteractBlockEvent;
-import org.spongepowered.api.event.block.tileentity.ChangeSignEvent;
-import org.spongepowered.api.event.game.state.GameStartedServerEvent;
-import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
-import org.spongepowered.api.plugin.Plugin;
-import org.spongepowered.api.service.config.DefaultConfig;
-import org.spongepowered.api.text.Texts;
-import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.world.Location;
-import org.spongepowered.api.world.TeleportHelper;
-import org.spongepowered.api.world.World;
-
-import com.erigitic.config.AccountManager;
-import com.erigitic.main.TotalEconomy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.inject.Inject;
 
 @Plugin(id = "ChestShop", name = "ChestShop", version = "0.2", dependencies = "required-after:TotalEconomy")
 public class Main
@@ -200,7 +197,7 @@ public class Main
 	}
 
 	@Listener
-	public void onPlayerBreakBlock(BreakBlockEvent event)
+	public void onPlayerBreakBlock(ChangeBlockEvent.Break event)
 	{
 		if(event.getCause().first(Player.class).isPresent())
 		{
