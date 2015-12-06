@@ -12,9 +12,11 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
-import org.spongepowered.api.block.BlockTransaction;
+import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.block.tileentity.Sign;
+import org.spongepowered.api.config.DefaultConfig;
+import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.manipulator.mutable.tileentity.SignData;
 import org.spongepowered.api.entity.living.player.Player;
@@ -25,7 +27,6 @@ import org.spongepowered.api.event.block.tileentity.ChangeSignEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.plugin.Plugin;
-import org.spongepowered.api.service.config.DefaultConfig;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.world.Location;
@@ -201,14 +202,14 @@ public class Main
 	{
 		if(event.getCause().first(Player.class).isPresent())
 		{
-			for(BlockTransaction transaction : event.getTransactions())
+			for(Transaction<BlockSnapshot> transaction : event.getTransactions())
 			{
-				if (transaction.getFinalReplacement().getState().getType() != null && transaction.getFinalReplacement().getState().getType() == BlockTypes.WALL_SIGN)
+				if (transaction.getFinal().getState().getType() != null && transaction.getFinal().getState().getType() == BlockTypes.WALL_SIGN)
 				{
 					ChestShop thisShop = null;
 					for (ChestShop chestShop : chestShops)
 					{
-						if (chestShop.getSignLocation().getX() == transaction.getFinalReplacement().getLocation().get().getX() && chestShop.getSignLocation().getY() == transaction.getFinalReplacement().getLocation().get().getY() && chestShop.getSignLocation().getZ() == transaction.getFinalReplacement().getLocation().get().getZ())
+						if (chestShop.getSignLocation().getX() == transaction.getFinal().getLocation().get().getX() && chestShop.getSignLocation().getY() == transaction.getFinal().getLocation().get().getY() && chestShop.getSignLocation().getZ() == transaction.getFinal().getLocation().get().getZ())
 						{
 							thisShop = chestShop;
 						}
@@ -269,7 +270,7 @@ public class Main
 						if (chestLocation.getBlock() != null && chestLocation.getBlock().getType().equals(BlockTypes.CHEST))
 						{
 							// TODO: Get chest and check if Item is in there - cannot be done until InventoryAPI is implemented..
-							TotalEconomy totalEconomy = (TotalEconomy) game.getPluginManager().getPlugin("TotalEconomy").get().getInstance();
+							TotalEconomy totalEconomy = (TotalEconomy) game.getPluginManager().getPlugin("TotalEconomy").get().getInstance().get();
 							AccountManager accountManager = totalEconomy.getAccountManager();
 							BigDecimal amount = new BigDecimal(price);
 
@@ -277,7 +278,7 @@ public class Main
 							{
 								accountManager.removeFromBalance(player.getUniqueId(), amount);
 								player.sendMessage(Texts.of(TextColors.BLUE, "[ChestShop]: ", TextColors.GREEN, "You have just bought " + itemAmount + " " + itemName + " for " + price + " dollars."));
-								game.getCommandDispatcher().process(game.getServer().getConsole(), "give" + " " + player.getName() + " " + itemName + " " + itemAmount);
+								game.getCommandManager().process(game.getServer().getConsole(), "give" + " " + player.getName() + " " + itemName + " " + itemAmount);
 								accountManager.addToBalance(UUID.fromString(thisShop.getOwnerUUID()), amount, true);
 
 								Player owner = null;
