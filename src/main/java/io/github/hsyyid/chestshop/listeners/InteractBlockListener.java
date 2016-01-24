@@ -71,9 +71,11 @@ public class InteractBlockListener
 						player.sendMessage(Text.of(TextColors.BLUE, "[SpongyChest]: ", TextColors.GREEN, "Set item id on ChestShop."));
 					}
 
-					if (itemType != null && chest.getInventory().contains(itemType) && ItemUtils.canRemoveItemsFromInventory(chest.getInventory(), itemType, itemAmount))
+					if (itemType != null && chest.getInventory().contains(itemType) && ItemUtils.canRemoveItemsFromInventory(chest.getInventory(), itemType, thisShop.getMeta(), itemAmount))
 					{
-						ItemUtils.removeItemsFromInventory(chest.getInventory(), itemType, itemAmount);
+						if (thisShop.getMeta() != -1)
+							ItemUtils.removeItemsFromInventory(chest.getInventory(), itemType, thisShop.getMeta(), itemAmount);
+
 						UniqueAccount uniqueAccount = null;
 						UniqueAccount ownerAccount = null;
 						BigDecimal amount = new BigDecimal(price);

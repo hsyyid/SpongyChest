@@ -1,6 +1,7 @@
 package io.github.hsyyid.chestshop.utils;
 
 import org.spongepowered.api.block.tileentity.carrier.TileEntityCarrier;
+import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -10,7 +11,7 @@ import java.util.Optional;
 
 public class ItemUtils
 {
-	public static boolean canRemoveItemsFromInventory(TileEntityInventory<TileEntityCarrier> inventory, ItemType itemType, int quantity)
+	public static boolean canRemoveItemsFromInventory(TileEntityInventory<TileEntityCarrier> inventory, ItemType itemType, int meta, int quantity)
 	{
 		int removedItems = 0;
 
@@ -22,7 +23,7 @@ public class ItemUtils
 			{
 				ItemStack stack = item.get();
 
-				if (stack.getItem() == itemType && removedItems != quantity)
+				if (stack.getItem() == itemType && removedItems != quantity && ItemUtils.hasMeta(stack, meta))
 				{
 					if (stack.getQuantity() + removedItems <= quantity)
 					{
@@ -46,7 +47,21 @@ public class ItemUtils
 			return false;
 	}
 
-	public static void removeItemsFromInventory(TileEntityInventory<TileEntityCarrier> inventory, ItemType itemType, int quantity)
+	public static boolean hasMeta(ItemStack itemStack, int meta)
+	{
+		Optional<Object> object = itemStack.toContainer().get(DataQuery.of("UnsafeDamage"));
+
+		if (object.isPresent() && object.get().equals(meta))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	public static void removeItemsFromInventory(TileEntityInventory<TileEntityCarrier> inventory, ItemType itemType, int meta, int quantity)
 	{
 		int removedItems = 0;
 
@@ -58,7 +73,7 @@ public class ItemUtils
 			{
 				ItemStack stack = item.get();
 
-				if (stack.getItem() == itemType && removedItems != quantity)
+				if (stack.getItem() == itemType && removedItems != quantity && ItemUtils.hasMeta(stack, meta))
 				{
 					if (stack.getQuantity() + removedItems <= quantity)
 					{
