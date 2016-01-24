@@ -5,6 +5,7 @@ import org.spongepowered.api.world.World;
 
 public class ChestShop
 {
+	public int meta;
 	public int itemAmount;
 	public double price;
 	public String itemName;
@@ -13,11 +14,27 @@ public class ChestShop
 	
 	public ChestShop(int itemAmount, double price, String itemName, Location<World> signLocation, String ownerUUID)
 	{
+		this.meta = -1;
 		this.itemAmount = itemAmount;
 		this.price = price;
 		this.itemName = itemName;
 		this.signLocation = signLocation;
 		this.ownerUUID = ownerUUID;
+	}
+	
+	public ChestShop(int itemAmount, double price, String itemName, Location<World> signLocation, String ownerUUID, int meta)
+	{
+		this.meta = meta;
+		this.itemAmount = itemAmount;
+		this.price = price;
+		this.itemName = itemName;
+		this.signLocation = signLocation;
+		this.ownerUUID = ownerUUID;
+	}
+	
+	public void setMeta(int meta)
+	{
+		this.meta = meta;
 	}
 	
 	public void setItemAmount(int itemAmount)
@@ -38,6 +55,11 @@ public class ChestShop
 	public void setItemName(String itemName)
 	{
 		this.itemName = itemName;
+	}
+	
+	public int getMeta()
+	{
+		return meta;
 	}
 	
 	public int getItemAmount()

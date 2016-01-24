@@ -3,10 +3,13 @@ apply plugin: 'eclipse'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
-version = '0.2'
+version = '0.3'
+group = "io.github.hsyyid"
+archivesBaseName = "SpongyChest"
+
 jar {
     manifest {
-        attributes 'Implementation-Title': 'ChestShop',
+        attributes 'Implementation-Title': 'SpongyChest',
                    'Implementation-Version': version
     }
 }
@@ -20,13 +23,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.spongepowered:spongeapi:2.1-SNAPSHOT"
-}
-
-dependencies {
-    compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
-    testCompile group: 'junit', name: 'junit', version: '4.+'
-	compile files('libs/TotalEconomy.jar')
+    compile "org.spongepowered:spongeapi:3.0.0"
 }
 
 test {

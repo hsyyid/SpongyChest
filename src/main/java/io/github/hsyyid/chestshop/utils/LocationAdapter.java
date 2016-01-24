@@ -1,6 +1,6 @@
 package io.github.hsyyid.chestshop.utils;
 
-import io.github.hsyyid.chestshop.Main;
+import io.github.hsyyid.chestshop.SpongyChest;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -68,9 +68,9 @@ public class LocationAdapter extends TypeAdapter<Location<World>>
 
 		in.endObject();
 
-		if (Main.game.getServer().getWorld(UUID.fromString(worldID)).isPresent())
+		if (SpongyChest.game.getServer().getWorld(UUID.fromString(worldID)).isPresent())
 		{
-			Location<World> location = new Location<World>(Main.game.getServer().getWorld(UUID.fromString(worldID)).get(), x, y, z);
+			Location<World> location = new Location<World>(SpongyChest.game.getServer().getWorld(UUID.fromString(worldID)).get(), x, y, z);
 			return location;
 		}
 		else
