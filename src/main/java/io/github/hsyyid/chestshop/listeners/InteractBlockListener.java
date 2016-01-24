@@ -63,7 +63,7 @@ public class InteractBlockListener
 						}
 					}
 
-					if (foundChestShopModifier != null)
+					if (foundChestShopModifier != null && player.getUniqueId().toString().equals(thisShop.getOwnerUUID()))
 					{
 						thisShop.setItemName(foundChestShopModifier.getItemName());
 						thisShop.setMeta(foundChestShopModifier.getMeta());
