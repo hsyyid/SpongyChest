@@ -1,18 +1,34 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+		maven {
+			url = 'https://oss.sonatype.org/content/groups/public' 
+		}
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
+    }
+}
+apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
-version = '0.3'
+version = '0.4'
 group = "io.github.hsyyid"
 archivesBaseName = "SpongyChest"
 
-jar {
-    manifest {
-        attributes 'Implementation-Title': 'SpongyChest',
-                   'Implementation-Version': version
-    }
+minecraft {
+    version = "1.8.9-11.15.1.1808"
+    runDir = "run"
+    mappings = "stable_20"
 }
+
 
 repositories {
     mavenCentral()
@@ -23,17 +39,11 @@ repositories {
 }
 
 dependencies {
-    compile "org.spongepowered:spongeapi:3.0.0"
+	compile "org.spongepowered:spongeapi:4.0.3"
 }
 
-test {
-    systemProperties 'property': 'value'
-}
-
-uploadArchives {
-    repositories {
-       flatDir {
-           dirs 'repos'
-       }
+jar {
+        manifest {
+        attributes 'FMLAT': 'spongychest_at.cfg'
     }
 }

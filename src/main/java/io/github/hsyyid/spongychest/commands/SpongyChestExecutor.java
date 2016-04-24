@@ -1,4 +1,4 @@
-package io.github.hsyyid.chestshop.commands;
+package io.github.hsyyid.spongychest.commands;
 
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
