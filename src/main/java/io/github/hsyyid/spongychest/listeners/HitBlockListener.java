@@ -27,7 +27,7 @@ public class HitBlockListener
 			{
 				UUID uuid = chest.get(UUIDChestData.class).get().uuid().get();
 
-				if (uuid.equals(player.getUniqueId()) && player.hasPermission("spongychest.shop.destroy"))
+				if (uuid.equals(player.getUniqueId()) || player.hasPermission("spongychest.shop.destroy"))
 				{
 					player.sendMessage(Text.of(TextColors.BLUE, "[SpongyChest]: ", TextColors.GREEN, "Successfully deleted shop!"));
 					chest.offer(new SpongeIsSpongyChestData(false));
