@@ -54,7 +54,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-@Plugin(id = "io.github.hsyyid.spongychest", name = "SpongyChest", version = "0.4.1")
+@Plugin(id = "io.github.hsyyid.spongychest", name = "SpongyChest", version = "0.4.2")
 public class SpongyChest
 {
 	public static EconomyService economyService;
