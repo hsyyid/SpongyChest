@@ -168,39 +168,6 @@ public class InteractBlockListener
 
 					event.setCancelled(true);
 				}
-				else if (player.hasPermission("spongychest.shop.create"))
-				{
-					Optional<ChestShopModifier> chestShopModifier = SpongyChest.chestShopModifiers.stream().filter(m -> m.getUuid().equals(player.getUniqueId())).findAny();
-
-					if (chestShopModifier.isPresent())
-					{
-						chest.offer(new SpongeIsSpongyChestData(true));
-						chest.offer(new SpongeItemChestData(chestShopModifier.get().getItem()));
-						chest.offer(new SpongePriceChestData(chestShopModifier.get().getPrice().doubleValue()));
-						chest.offer(new SpongeUUIDChestData(chestShopModifier.get().getUuid()));
-						SpongyChest.chestShopModifiers.remove(chestShopModifier.get());
-
-						Location<World> frameLocation = chest.getLocation().add(0, 1, 0);
-						Optional<Entity> itemFrame = chest.getLocation().getExtent().createEntity(EntityTypes.ITEM_FRAME, frameLocation.getPosition());
-
-						if (itemFrame.isPresent())
-						{
-							ItemFrame entity = (ItemFrame) itemFrame.get();
-							ItemStack frameStack = chestShopModifier.get().getItem().createStack();
-							frameStack.offer(Keys.DISPLAY_NAME, Text.of(TextColors.GREEN, "Item: ", TextColors.WHITE, frameStack.getTranslation().get(), " ", TextColors.GREEN, "Amount: ", TextColors.WHITE, frameStack.getQuantity(), " ", TextColors.GREEN, "Price: ", TextColors.WHITE, SpongyChest.economyService.getDefaultCurrency().getSymbol().toPlain(), chestShopModifier.get().getPrice()));
-							entity.offer(Keys.REPRESENTED_ITEM, frameStack.createSnapshot());
-							((EntityHanging) entity).updateFacingWithBoundingBox(EnumFacing.byName(chest.getLocation().getBlock().get(Keys.DIRECTION).get().name()));
-
-							if (((EntityHanging) entity).onValidSurface())
-							{
-								chest.getLocation().getExtent().spawnEntity(entity, Cause.of(NamedCause.source(player)));
-							}
-						}
-
-						player.sendMessage(Text.of(TextColors.BLUE, "[SpongyChest]: ", TextColors.GREEN, "Created shop."));
-						event.setCancelled(true);
-					}
-				}
 			}
 		}
 	}
