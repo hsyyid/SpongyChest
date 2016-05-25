@@ -3,7 +3,6 @@ package io.github.hsyyid.spongychest.utils;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntityChest;
-import net.minecraftforge.items.CapabilityItemHandler;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 
 public class ChestUtils
@@ -50,7 +49,7 @@ public class ChestUtils
 				{
 					if (neededItems >= foundItems + stack.stackSize)
 					{
-						chest.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null).extractItem(i, stack.stackSize, false);
+						chest.removeStackFromSlot(i);
 						foundItems += stack.stackSize;
 					}
 					else
