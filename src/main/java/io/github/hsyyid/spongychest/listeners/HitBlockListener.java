@@ -12,7 +12,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.entity.InteractEntityEvent;
-import org.spongepowered.api.event.filter.cause.First;
+import org.spongepowered.api.event.filter.cause.Root;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
@@ -22,7 +22,7 @@ import java.util.UUID;
 public class HitBlockListener
 {
 	@Listener
-	public void onPlayerHitBlock(InteractBlockEvent.Primary event, @First Player player)
+	public void onPlayerHitBlock(InteractBlockEvent.Primary event, @Root Player player)
 	{
 		if (event.getTargetBlock().getState().getType() == BlockTypes.CHEST && event.getTargetBlock().getLocation().isPresent() && event.getTargetBlock().getLocation().get().getTileEntity().isPresent())
 		{
@@ -46,7 +46,7 @@ public class HitBlockListener
 	}
 
 	@Listener
-	public void onPlayerHitEntity(InteractEntityEvent.Primary event, @First Player player)
+	public void onPlayerHitEntity(InteractEntityEvent.Primary event, @Root Player player)
 	{
 		if (event.getTargetEntity().getType() == EntityTypes.ITEM_FRAME)
 		{

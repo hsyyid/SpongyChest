@@ -26,8 +26,11 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
+import org.spongepowered.api.event.cause.entity.spawn.SpawnCause;
+import org.spongepowered.api.event.cause.entity.spawn.SpawnTypes;
 import org.spongepowered.api.event.entity.InteractEntityEvent;
 import org.spongepowered.api.event.filter.cause.First;
+import org.spongepowered.api.event.filter.cause.Root;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
@@ -44,7 +47,7 @@ import java.util.UUID;
 public class InteractBlockListener
 {
 	@Listener
-	public void onPlayerInteractBlock(InteractBlockEvent.Secondary event, @First Player player)
+	public void onPlayerInteractBlock(InteractBlockEvent.Secondary event, @Root Player player)
 	{
 		if (event.getTargetBlock().getLocation().isPresent() && event.getTargetBlock().getState().getType() == BlockTypes.CHEST)
 		{
@@ -110,7 +113,7 @@ public class InteractBlockListener
 
 						if (((EntityHanging) entity).onValidSurface())
 						{
-							chest.getLocation().getExtent().spawnEntity(entity, Cause.of(NamedCause.source(player)));
+							chest.getLocation().getExtent().spawnEntity(entity, Cause.of(NamedCause.source(SpawnCause.builder().type(SpawnTypes.PLUGIN).build())));
 						}
 					}
 
