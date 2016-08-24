@@ -15,6 +15,8 @@ import org.spongepowered.api.event.entity.InteractEntityEvent;
 import org.spongepowered.api.event.filter.cause.Root;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -40,6 +42,37 @@ public class HitBlockListener
 				else
 				{
 					event.setCancelled(true);
+				}
+			}
+		}
+	}
+
+	@Listener
+	public void onPlayerHitFrame(InteractEntityEvent.Primary event, @Root Player player)
+	{
+		if (event.getTargetEntity().getType() == EntityTypes.ITEM_FRAME)
+		{
+			ItemFrame itemFrame = (ItemFrame) event.getTargetEntity();
+			Location<World> chestLocation = itemFrame.getLocation().sub(0, 1, 0);
+			Optional<TileEntity> tile = chestLocation.getTileEntity();
+
+			if (tile.isPresent() && tile.get() instanceof Chest)
+			{
+				Chest chest = (Chest) tile.get();
+
+				if (chest.get(IsSpongyChestData.class).isPresent() && chest.get(IsSpongyChestData.class).get().isSpongyChest().get())
+				{
+					UUID uuid = chest.get(UUIDChestData.class).get().uuid().get();
+
+					if (uuid.equals(player.getUniqueId()) || player.hasPermission("spongychest.shop.destroy"))
+					{
+						player.sendMessage(Text.of(TextColors.BLUE, "[SpongyChest]: ", TextColors.GREEN, "Successfully deleted shop!"));
+						chest.offer(new SpongeIsSpongyChestData(false));
+					}
+					else
+					{
+						event.setCancelled(true);
+					}
 				}
 			}
 		}
