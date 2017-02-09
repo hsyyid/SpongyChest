@@ -20,6 +20,7 @@ public class ChestUtils
 
 				if (stack != null && stack.getItem().equals(item)) // TODO: Metadata && stack.getMetadata() == snapshot.)
 				{
+					// getStackSize
 					foundItems += stack.stackSize;
 
 					if (foundItems >= snapshot.getCount())
@@ -45,7 +46,7 @@ public class ChestUtils
 			{
 				ItemStack stack = chest.getStackInSlot(i);
 
-				if (stack != null && stack.getItem().equals(item)) // TODO: Metadata && stack.getMetadata() == snapshot.)
+				if (stack != null && stack.getItem().equals(item)) // TODO: Metadata && stack.getMetadata()
 				{
 					if (neededItems >= foundItems + stack.stackSize)
 					{
