@@ -1,11 +1,8 @@
 SpongyChest [![Build Status](https://travis-ci.org/hsyyid/SpongyChest.svg?branch=master)](https://travis-ci.org/hsyyid/SpongyChest)
 =============
 
-**Currently not stable and under heavy development**
-
-A minecraft plugin for Sponge platforms.
-Contains many essential commands, features and other useful goodies.
-
+A Minecraft plugin for the SpongePowered Platforms.
+Allows for selling/purchasing of items from player to player via a chest.
 
 ## Links ##
 * [Source]
