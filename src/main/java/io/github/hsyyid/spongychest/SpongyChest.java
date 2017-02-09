@@ -34,7 +34,7 @@ import org.spongepowered.api.text.Text;
 import java.io.File;
 import java.util.*;
 
-@Plugin(id = "spongychest", name = "SpongyChest", version = "0.4.7", description = "SpongyChest is a plugin that utilizes Chests to make in-game item shops for players to sell items to each other!")
+@Plugin(id = "spongychest", name = "SpongyChest", version = "0.4.8", description = "SpongyChest is a plugin that utilizes Chests to make in-game item shops for players to sell items to each other!")
 public class SpongyChest
 {
 	public static EconomyService economyService;
