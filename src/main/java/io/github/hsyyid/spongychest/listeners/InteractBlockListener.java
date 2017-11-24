@@ -1,5 +1,45 @@
 package io.github.hsyyid.spongychest.listeners;
 
+import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.BlockTypes;
+import org.spongepowered.api.block.tileentity.TileEntity;
+import org.spongepowered.api.block.tileentity.carrier.Chest;
+import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.entity.Entity;
+import org.spongepowered.api.entity.EntityTypes;
+import org.spongepowered.api.entity.Item;
+import org.spongepowered.api.entity.hanging.ItemFrame;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.Cancellable;
+import org.spongepowered.api.event.Event;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.block.InteractBlockEvent;
+import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.NamedCause;
+import org.spongepowered.api.event.cause.entity.spawn.EntitySpawnCause;
+import org.spongepowered.api.event.cause.entity.spawn.SpawnCause;
+import org.spongepowered.api.event.cause.entity.spawn.SpawnTypes;
+import org.spongepowered.api.event.entity.DestructEntityEvent;
+import org.spongepowered.api.event.entity.InteractEntityEvent;
+import org.spongepowered.api.event.filter.cause.First;
+import org.spongepowered.api.event.filter.cause.Root;
+import org.spongepowered.api.item.ItemTypes;
+import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResult;
+import org.spongepowered.api.plugin.PluginContainer;
+import org.spongepowered.api.service.economy.account.UniqueAccount;
+import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
+
 import io.github.hsyyid.spongychest.SpongyChest;
 import io.github.hsyyid.spongychest.data.isspongychest.IsSpongyChestData;
 import io.github.hsyyid.spongychest.data.isspongychest.SpongeIsSpongyChestData;
@@ -14,46 +54,11 @@ import io.github.hsyyid.spongychest.utils.ChestUtils;
 import net.minecraft.entity.EntityHanging;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.EnumFacing;
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.block.BlockTypes;
-import org.spongepowered.api.block.tileentity.TileEntity;
-import org.spongepowered.api.block.tileentity.carrier.Chest;
-import org.spongepowered.api.data.key.Keys;
-import org.spongepowered.api.entity.EntityTypes;
-import org.spongepowered.api.entity.Item;
-import org.spongepowered.api.entity.hanging.ItemFrame;
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.Cancellable;
-import org.spongepowered.api.event.Event;
-import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.block.InteractBlockEvent;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.NamedCause;
-import org.spongepowered.api.event.cause.entity.spawn.EntitySpawnCause;
-import org.spongepowered.api.event.cause.entity.spawn.SpawnCause;
-import org.spongepowered.api.event.cause.entity.spawn.SpawnTypes;
-import org.spongepowered.api.event.entity.InteractEntityEvent;
-import org.spongepowered.api.event.filter.cause.First;
-import org.spongepowered.api.event.filter.cause.Root;
-import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.ItemStackSnapshot;
-import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResult;
-import org.spongepowered.api.plugin.PluginContainer;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
-import org.spongepowered.api.service.economy.transaction.ResultType;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.world.Location;
-import org.spongepowered.api.world.World;
-
-import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.UUID;
 
 public class InteractBlockListener
 {
-    private <E extends Event & Cancellable> void purchase(E event, Chest chest, Player player) {
+	private <E extends Event & Cancellable> void purchase(E event, Chest chest, Player player)
+	{
 		ItemStackSnapshot item = chest.get(ItemChestData.class).get().itemStackSnapshot().get();
 		double price = chest.get(PriceChestData.class).get().price().get();
 		UUID ownerUuid = chest.get(UUIDChestData.class).get().uuid().get();
@@ -77,21 +82,23 @@ public class InteractBlockListener
 
 				player.sendMessage(Text.of(TextColors.BLUE, "[SpongyChest]: ", TextColors.GREEN, "Purchased item(s)."));
 
-				if (rejectedItems.size() > 0) {
-                    Location<World> location = player.getLocation();
+				if (rejectedItems.size() > 0)
+				{
+					Location<World> location = player.getLocation();
 					World world = location.getExtent();
 					PluginContainer pluginContainer = Sponge.getPluginManager().getPlugin("spongychest").get();
 
-					for (ItemStackSnapshot rejectedSnapshot : rejectedItems) {
-                        Item rejectedItem = (Item) world.createEntity(EntityTypes.ITEM, location.getPosition());
+					for (ItemStackSnapshot rejectedSnapshot : rejectedItems)
+					{
+						Item rejectedItem = (Item) world.createEntity(EntityTypes.ITEM, location.getPosition());
 
-                        rejectedItem.offer(Keys.REPRESENTED_ITEM, rejectedSnapshot);
-                        //rejectedItem.item().set(rejectedSnapshot);
+						rejectedItem.offer(Keys.REPRESENTED_ITEM, rejectedSnapshot);
+						// rejectedItem.item().set(rejectedSnapshot);
 
 						Cause cause = Cause.source(EntitySpawnCause.builder().entity(rejectedItem).type(SpawnTypes.PLUGIN).build())
-								.owner(pluginContainer)
-								.notifier(event.getCause())
-								.build();
+							.owner(pluginContainer)
+							.notifier(event.getCause())
+							.build();
 
 						world.spawnEntity(rejectedItem, cause);
 					}
@@ -111,6 +118,7 @@ public class InteractBlockListener
 
 		event.setCancelled(true);
 	}
+
 	@Listener
 	public void onPlayerInteractBlock(InteractBlockEvent.Secondary event, @Root Player player)
 	{
@@ -120,6 +128,12 @@ public class InteractBlockListener
 
 			if (chest.get(IsSpongyChestData.class).isPresent() && chest.get(IsSpongyChestData.class).get().isSpongyChest().get())
 			{
+				if (player.get(Keys.IS_SNEAKING).isPresent())
+				{
+					event.setCancelled(true);
+					return;
+				}
+
 				purchase(event, chest, player);
 			}
 			else if (player.hasPermission("spongychest.shop.create"))
@@ -135,7 +149,7 @@ public class InteractBlockListener
 					SpongyChest.chestShopModifiers.remove(chestShopModifier.get());
 
 					Location<World> frameLocation = chest.getLocation().add(0, 1, 0);
-					
+
 					ItemFrame itemFrame = (ItemFrame) chest.getLocation().getExtent().createEntity(EntityTypes.ITEM_FRAME, frameLocation.getPosition());
 
 					if (itemFrame != null)
@@ -143,6 +157,8 @@ public class InteractBlockListener
 						ItemStack frameStack = chestShopModifier.get().getItem().createStack();
 						frameStack.offer(Keys.DISPLAY_NAME, Text.of(TextColors.GREEN, "Item: ", TextColors.WHITE, frameStack.getTranslation().get(), " ", TextColors.GREEN, "Amount: ", TextColors.WHITE, frameStack.getQuantity(), " ", TextColors.GREEN, "Price: ", TextColors.WHITE, SpongyChest.economyService.getDefaultCurrency().getSymbol().toPlain(), chestShopModifier.get().getPrice()));
 						itemFrame.offer(Keys.REPRESENTED_ITEM, frameStack.createSnapshot());
+						itemFrame.offer(new SpongeIsSpongyChestData(true));
+
 						((EntityHanging) itemFrame).updateFacingWithBoundingBox(EnumFacing.byName(chest.getLocation().getBlock().get(Keys.DIRECTION).get().name()));
 
 						if (((EntityHanging) itemFrame).onValidSurface())
@@ -159,7 +175,7 @@ public class InteractBlockListener
 	}
 
 	@Listener
-	public void onPlayerInteractEntity(InteractEntityEvent.Secondary event, @First Player player)
+	public void onPlayerInteractEntity(InteractEntityEvent.Secondary event, @Root Player player)
 	{
 		if (event.getTargetEntity().getType() == EntityTypes.ITEM_FRAME)
 		{
@@ -175,6 +191,20 @@ public class InteractBlockListener
 					purchase(event, chest, player);
 				}
 			}
+		}
+	}
+
+	@Listener
+	public void onDestruct(DestructEntityEvent event, @First Player player)
+	{
+		Entity entity = event.getTargetEntity();
+
+		if (entity.getType() == EntityTypes.ITEM_FRAME && entity.get(IsSpongyChestData.class).isPresent())
+		{
+			ItemFrame frame = (ItemFrame) entity;
+			frame.offer(Keys.REPRESENTED_ITEM, ItemStack.builder()
+				.itemType(ItemTypes.NONE)
+				.build().createSnapshot());
 		}
 	}
 }
